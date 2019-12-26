@@ -9,6 +9,9 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
+import org.openqa.selenium.By;
+import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.chrome.ChromeDriver;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -28,8 +31,7 @@ import static org.hamcrest.core.StringContains.containsString;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @RunWith(SpringRunner.class)
 @TestPropertySource("/application-test.properties")
@@ -75,11 +77,27 @@ public class RedirectCheck {
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString("Доска постов")));
+        this.mockMvc.perform(get("/new"))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("Добавить пост")));
     }
 
     @Test
     public void mocks() throws Exception {
         Post post =  postService.create("Test text");
         Mockito.verify(postRepository, Mockito.times(1)).save(post);
+    }
+
+    @Test
+    public void likeButton() throws Exception {
+
+        System.setProperty("webdriver.chrome.driver","C:\\Users\\odint\\Desktop\\My web app-browser\\My web app\\chromedriver.exe");
+         WebDriver driver = new ChromeDriver();
+        driver.get("http://localhost:8080/");
+        int oldCount = Integer.parseInt(driver.findElement(By.xpath(".//div[@class='col-md-1']/button[@class='btn btn-sm btn-secondary like']")).getText().replace(" ❤",""));
+        driver.findElement(By.xpath(".//div[@class='col-md-1']/button[@class='btn btn-sm btn-secondary like']")).click();
+        int newCount = Integer.parseInt(driver.findElement(By.xpath(".//div[@class='col-md-1']/button[@class='btn btn-sm btn-secondary like']")).getText().replace(" ❤",""));
+       Assert.assertEquals(oldCount+1, newCount);
     }
 }
